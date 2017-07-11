@@ -6,4 +6,4 @@ To run app: sbt run, then navigate to localhost:9000
 To run tests: sbt test
 
 Try it out!
-http://104.131.62.42:9000/
+http://104.131.62.42
