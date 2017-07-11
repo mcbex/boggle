@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <style type="text/css">
+      body {
+        margin: 10px;
+      }
+
+      h1 {
+        margin: 20px;
+      }
+
+      div#main {
+        margin: 40px 20px;
+      }
+
+      select#board-dimensions {
+        width: 50px;
+        margin: 2px 2px 25px 2px;
+      }
+
+      div.boggle-row input {
+        width: 50px;
+        display: inline;
+        margin: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Boggle SolvR</h1>
+
+    <div id="main">
+      <label>Number of rows and columns</label>
+      <select id="board-dimensions" class="form-control">
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      <div id="boggle-board"></div>
+      <button id="submit" class="btn btn-default" type="submit">Submit</button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const divString = "<div class='boggle-row form-group'>";
+      const inputString = "<input type='text' class='form-control'>";
+
+      function makeBoard(numRows) {
+        let html = ""
+        for (var i = 0; i < numRows; i++) {
+          html += divString;
+          for (var j = 0; j < numRows; j++) {
+            html += inputString;
+          }
+          html += "</div>"
+        }
+        document.getElementById("boggle-board").innerHTML = html;
+        document.getElementById("result").innerHTML = "";
+      }
+
+      makeBoard(4);
+
+      document.getElementById("board-dimensions").onchange = function(event) {
+        makeBoard(event.target.value);
+      }
+
+      document.getElementById("submit").onclick = function(event) {
+        document.getElementById("result").innerHTML = "<h2>... Please wait ...</h2>";
+
+        const boardValues = [...document.querySelectorAll('div.boggle-row')]
+          .map(node => [...node.children].map(input => input.value));
+
+        fetch("/solve", {
+          method: "POST",
+          body: JSON.stringify(boardValues)
+        }).then(function(response) {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json().then(function(json) {
+              const html = "<h2>" + json.length + " words found!</h2><p>" + json.join(", ") + "</p>";
+
+              document.getElementById("result").innerHTML = html;
+            });
+          } else {
+            return response.text().then(function(text) {
+              document.getElementById("result").innerHTML = "<h2>Error</h2><p>" + text + "</p>";
+            });
+          }
+        })
+      };
+    </script>
+  </body>
+
+</html>
